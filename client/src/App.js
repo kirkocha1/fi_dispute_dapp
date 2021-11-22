@@ -1,31 +1,41 @@
-import React, { Component } from "react";
-import SimpleStorageContract from "./contracts/SimpleStorage.json";
-import getWeb3 from "./getWeb3";
+import React, { Component } from 'react'
+import FiDisputeManager from './contracts/FiDisputeManager.json'
+import FiDiToken from './contracts/FiDiToken.json'
+import getWeb3 from "./getWeb3"
+import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
+import Container from 'react-bootstrap/Container'
+import Spinner from 'react-bootstrap/Spinner'
 
+import Card from 'react-bootstrap/Card'
+import Col from 'react-bootstrap/Col'
+import Row from 'react-bootstrap/Row'
+
+import DiFiOperationsComponent from './components/DiFiOperationsComponent'
+import DisputeBuilderComponent from './components/DisputeBuilderComponent'
+import ChallengerComponent from './components/ChallengerComponent'
+import JudgeAssignerComponent from './components/JudgeAssignerComponent'
+import WinnerComponent from './components/WinnerComponent'
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null };
+  state = { storageValue: 0, accounts: null, contract: null, isLoaded: false };
 
   componentDidMount = async () => {
+    console.log('root componentDidMount')
     try {
-      // Get network provider and web3 instance.
-      const web3 = await getWeb3();
-
-      // Use web3 to get the user's accounts.
-      const accounts = await web3.eth.getAccounts();
-
-      // Get the contract instance.
-      const networkId = await web3.eth.net.getId();
-      const deployedNetwork = SimpleStorageContract.networks[networkId];
-      const instance = new web3.eth.Contract(
-        SimpleStorageContract.abi,
-        deployedNetwork && deployedNetwork.address,
+      this.web3 = await getWeb3();
+      this.accounts = await this.web3.eth.getAccounts();
+      this.networkId = await this.web3.eth.net.getId();
+      this.disputeManger = new this.web3.eth.Contract(
+        FiDisputeManager.abi,
+        FiDisputeManager.networks[this.networkId] && FiDisputeManager.networks[this.networkId].address
       );
-
-      // Set web3, accounts, and contract to the state, and then proceed with an
-      // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.fiDitoken = new this.web3.eth.Contract(
+        FiDiToken.abi,
+        FiDiToken.networks[this.networkId] && FiDiToken.networks[this.networkId].address
+      );
+      this.setState({ isLoaded: true });
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -35,38 +45,31 @@ class App extends Component {
     }
   };
 
-  runExample = async () => {
-    const { accounts, contract } = this.state;
-
-    // Stores a given value, 5 by default.
-    await contract.methods.set(5).send({ from: accounts[0] });
-
-    // Get the value from the contract to prove it worked.
-    const response = await contract.methods.get().call();
-
-    // Update state with the result.
-    this.setState({ storageValue: response });
-  };
+  getFiDiTokenBalance = async () => {
+    console.log(`FiDi token balance for account ${this.state.activeAddress} is ${await this.fiDitoken.methods.balanceOf(this.state.activeAddress).call()}`)
+  }
 
   render() {
-    if (!this.state.web3) {
-      return <div>Loading Web3, accounts, and contract...</div>;
+    console.log('root render')
+    if (this.state.isLoaded) {
+      return (
+        <Container fluid>
+          <Col lg={6}>
+            <DiFiOperationsComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
+            <DisputeBuilderComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
+            <ChallengerComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
+            <JudgeAssignerComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
+            <WinnerComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
+          </Col>
+        </Container>
+      )
+    } else {
+      return (
+        <Container style={{ height: '100%' }} id="cont">
+          <Spinner animation="border" id="loader" />
+        </Container>
+      )
     }
-    return (
-      <div className="App">
-        <h1>Good to Go!</h1>
-        <p>Your Truffle Box is installed and ready.</p>
-        <h2>Smart Contract Example</h2>
-        <p>
-          If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
-        </p>
-        <p>
-          Try changing the value stored on <strong>line 42</strong> of App.js.
-        </p>
-        <div>The stored value is: {this.state.storageValue}</div>
-      </div>
-    );
   }
 }
 

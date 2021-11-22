@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.10;
 
 import "./FiDispute.sol";
 import "./FiDiToken.sol";
@@ -24,6 +24,9 @@ contract FiDisputeManager is Context {
     event FiDiTokenExchange(address buyer);
 
     event FiDiTokenRefund(address buyer);
+
+    event FiDisputeAccepted(address dispute, address challenger);
+
     constructor(FiDiToken _token) {
         token = _token;
     }
@@ -38,8 +41,8 @@ contract FiDisputeManager is Context {
         disputes[disputeHash] = address(dispute);
         token.transferFrom(
             _msgSender(),
-            dispute,
-            FiDispute(disputeInstance).getParticipationStake()
+            address(dispute),
+            dispute.participationStakeValue()
         );
         emit NewOpenDispute(address(dispute));
         return address(dispute);
@@ -48,15 +51,16 @@ contract FiDisputeManager is Context {
     function acceptDispute(address dispute) public {
         FiDispute disputeInstance = FiDispute(dispute);
         require(
-            token.balanceOf(_msgSender()) >= disputeInstance.getParticipationStake(),
+            token.balanceOf(_msgSender()) >= disputeInstance.participationStakeValue(),
             "no enough token to participate"
         );
-        disputeInstance.acceptDispute(disputeInstance.getParticipationStake());
+        disputeInstance.acceptDispute(_msgSender(), disputeInstance.participationStakeValue());
         token.transferFrom(
             _msgSender(),
             dispute,
-            FiDispute(disputeInstance).getParticipationStake()
+            disputeInstance.participationStakeValue()
         );
+        emit FiDisputeAccepted(dispute, _msgSender());
     }
 
     function refund(uint256 refundAmount) public payable {

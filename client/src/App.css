@@ -20,3 +20,21 @@
 .App-link {
   color: #09d3ac;
 }
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+}
+
+#root {
+  height: inherit;
+}
+
+#cont {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

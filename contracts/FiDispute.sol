@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.10;
 
 import "./FiDiToken.sol";
 import "./FiDisputeManager.sol";
@@ -32,13 +32,13 @@ contract FiDispute is Context {
     }
 
     modifier onlyParties(address caller) {
-        requreNotParty(caller);
+        require(isParty(caller), "caller must one of the party");
         _;
     }
 
-    function acceptDispute(uint256 challengerStake) public {
+    function acceptDispute(address challenger, uint256 challengerStake) public {
         require(_msgSender() == fiDiManager, "only manager contract is allowed to interact with this method");
-        parties.push(_msgSender());
+        parties.push(challenger);
         deposit += challengerStake;
     }   
 
@@ -48,6 +48,7 @@ contract FiDispute is Context {
     }
 
     function assignJudge(address _judge) public onlyParties(_msgSender()) {
+        require(!pendingWinner, "judge has been assigned to this dipute");
         for (uint256 index = 0; index < approves[_judge].length; index++) {
             require(_msgSender() != approves[_judge][index], "user already approved given judge");    
         }
@@ -60,6 +61,7 @@ contract FiDispute is Context {
     }
 
     function chooseWinner(address winner) public onlyParties(winner) {
+        require(pendingWinner, "dispute is in wrong state");
         require(_msgSender() == judge, "only judge can make this decision");
         require(!isFinished, "this dispute is already resolved");
         isFinished = true;
@@ -67,26 +69,30 @@ contract FiDispute is Context {
         fiDiToken.transfer(winner, deposit);
     }
 
-    function getParticipationStake() public view returns(uint256) {
+    function participationStakeValue() public view returns(uint256) {
         return participationStake;
     }
 
-    function getDeposit() public view returns(uint256) {
+    function depositValue() public view returns(uint256) {
         return deposit;
     }
 
-    function requreNotParty(address candidate) private view {
-        for (uint256 index = 0; index < parties.length; index++) {
-            require(candidate != parties[index], "challenger can't be the same as dispute initiator");    
-        }
+    function partiesCount() public view returns(uint256) {
+        return parties.length;
     }
 
-    function isParty(address candidate) private view returns(bool) {
+    function isParty(address candidate) public view returns(bool) {
         for (uint256 index = 0; index < parties.length; index++) {
             if (candidate == parties[index]) {
                 return true;
             }
         }
         return false;
+    }
+
+    function requreNotParty(address candidate) private view {
+        for (uint256 index = 0; index < parties.length; index++) {
+            require(candidate != parties[index], "candidate can't be the same as one of the party");    
+        }
     }
 }
