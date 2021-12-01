@@ -26,7 +26,7 @@ const corsOptions = {
 const provider = new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545")
 const web3 = new Web3(provider)
 
-// app.use(cors(corsOptions))
+app.use(cors(corsOptions))
 app.get('/disputes', async (req, res) => {
     let disputes = await disputeRepository.getAll()
     res.status(200)

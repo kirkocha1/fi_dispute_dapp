@@ -18,6 +18,10 @@ class JudgeAssignerComponent extends Component {
         this.setState({ partyAddress: event.target.value })
     }
 
+    onDisputeAddressChange = async (event) => {
+        this.setState({ disputeAddress: event.target.value })
+    }
+
     onJudgeCandidateAddressChange = async (event) => {
         this.setState({ judgeCandidate: event.target.value })
     }
@@ -31,7 +35,7 @@ class JudgeAssignerComponent extends Component {
         await dispute.methods
             .assignJudge(this.state.judgeCandidate)
             .send({ from: this.state.partyAddress })
-     
+
     }
 
     render() {
@@ -45,6 +49,10 @@ class JudgeAssignerComponent extends Component {
                             </Container>
                             <Form>
                                 <Form.Group className="mb-3">
+                                    <Form.Label>Dispute address</Form.Label>
+                                    <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onDisputeAddressChange} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
                                     <Form.Label>Dispute party address</Form.Label>
                                     <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onPartyAddressChange} />
                                 </Form.Group>
@@ -52,7 +60,7 @@ class JudgeAssignerComponent extends Component {
                                     <Form.Label>Judge candidate address</Form.Label>
                                     <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onJudgeCandidateAddressChange} />
                                 </Form.Group>
-                                <Button variant="primary" type="submit" onClick={this.assignJudge}>Offer</Button>
+                                <Button variant="primary" onClick={this.assignJudge}>Offer</Button>
                             </Form>
                         </Card.Body>
                     </Card>

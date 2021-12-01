@@ -2,15 +2,11 @@ import React, { Component } from 'react'
 import FiDisputeManager from './contracts/FiDisputeManager.json'
 import FiDiToken from './contracts/FiDiToken.json'
 import getWeb3 from "./getWeb3"
-import Button from 'react-bootstrap/Button'
-import Form from 'react-bootstrap/Form'
 import Container from 'react-bootstrap/Container'
 import Spinner from 'react-bootstrap/Spinner'
-
-import Card from 'react-bootstrap/Card'
 import Col from 'react-bootstrap/Col'
-import Row from 'react-bootstrap/Row'
 
+import Table from 'react-bootstrap/Table'
 import DiFiOperationsComponent from './components/DiFiOperationsComponent'
 import DisputeBuilderComponent from './components/DisputeBuilderComponent'
 import ChallengerComponent from './components/ChallengerComponent'
@@ -35,7 +31,8 @@ class App extends Component {
         FiDiToken.abi,
         FiDiToken.networks[this.networkId] && FiDiToken.networks[this.networkId].address
       );
-      this.setState({ isLoaded: true });
+      this.setState({ isLoaded: true, disputeTable: [] });
+      this.startPolling()
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -49,10 +46,18 @@ class App extends Component {
     console.log(`FiDi token balance for account ${this.state.activeAddress} is ${await this.fiDitoken.methods.balanceOf(this.state.activeAddress).call()}`)
   }
 
+  startPolling = async () => {
+    console.log("poll")
+    let response = await fetch("http://localhost:9999/disputes")
+    let disputes = await response.json()
+    this.setState({ disputeTable: disputes })
+    setTimeout(async () => { await this.startPolling() }, 5000)
+  }
+
   render() {
     console.log('root render')
     if (this.state.isLoaded) {
-      return (
+      return (<>
         <Container fluid>
           <Col lg={6}>
             <DiFiOperationsComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
@@ -62,6 +67,35 @@ class App extends Component {
             <WinnerComponent fiDitoken={this.fiDitoken} web3={this.web3} disputeManger={this.disputeManger} />
           </Col>
         </Container>
+        <Table striped bordered hover size="sm">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Dispute address</th>
+              <th>Dispute hash</th>
+              <th>Intitiaror address</th>
+              <th>Challenger address</th>
+              <th>Winner address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.disputeTable.map((dispute) => {
+              return (
+                <tr key={dispute.id}>
+                  <td>{dispute.id}</td>
+                  <td>{dispute.address}</td>
+                  <td>{dispute.hash}</td>
+                  <td>{dispute.initiator}</td>
+                  <td>{dispute.challenger}</td>
+                  <td>{dispute.winner}</td>
+                </tr>
+              )
+            })
+            }
+
+          </tbody>
+        </Table>
+      </>
       )
     } else {
       return (

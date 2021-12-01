@@ -47,7 +47,7 @@ class ChallengerComponent extends Component {
                                     <Form.Label>Dispute address</Form.Label>
                                     <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onDisputeAddressChange}/>
                                 </Form.Group>
-                                <Button variant="primary" type="submit">Accept</Button>
+                                <Button variant="primary" onClick={this.acceptDispute}>Accept</Button>
                             </Form>
                         </Card.Body>
                     </Card>

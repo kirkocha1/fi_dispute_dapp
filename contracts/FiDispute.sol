@@ -17,11 +17,11 @@ contract FiDispute is Context {
     mapping(address => address[]) approves;
     bytes32 disputeDescriptionHash;
 
-    event JudgeApproval(address judge);
+    event JudgeApproval(address dispute, address judge);
 
-    event ChosenJudge(address judge);
+    event ChosenJudge(address dispute, address judge);
 
-    event Winner(address winner);
+    event Winner(address dispute, address winner);
     constructor(address _fiDiManager, FiDiToken _fiDiToken, address _initiatorParty, bytes32 _disputeDescriptionHash, uint256 initiatorStake) {
         fiDiManager = _fiDiManager;
         fiDiToken = _fiDiToken;
@@ -44,7 +44,7 @@ contract FiDispute is Context {
 
     function offerJudge(address _judge) public payable onlyParties(_msgSender()) {
         require(!isParty(_judge), "judge should not be the same as involved parties");
-        emit JudgeApproval(_judge);
+        emit JudgeApproval(address(this), _judge);
     }
 
     function assignJudge(address _judge) public onlyParties(_msgSender()) {
@@ -56,7 +56,7 @@ contract FiDispute is Context {
         if (approves[_judge].length == parties.length) {
             judge = _judge;
             pendingWinner = true;
-            emit ChosenJudge(judge);
+            emit ChosenJudge(address(this), judge);
         }
     }
 
@@ -65,7 +65,7 @@ contract FiDispute is Context {
         require(_msgSender() == judge, "only judge can make this decision");
         require(!isFinished, "this dispute is already resolved");
         isFinished = true;
-        emit Winner(winner);
+        emit Winner(address(this), winner);
         fiDiToken.transfer(winner, deposit);
     }
 

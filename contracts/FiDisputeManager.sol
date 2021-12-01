@@ -12,14 +12,7 @@ contract FiDisputeManager is Context {
 
     mapping(bytes32 => address) disputes; 
 
-    event NewOpenDispute(address indexed disputeAddress);
-
-    event NewCompleteDispute(
-        address indexed disputeAddress, 
-        address initiator,
-        address challenger, 
-        address judge
-    );
+    event NewOpenDispute(address indexed disputeAddress, bytes32 disputeHash, address initiator);
 
     event FiDiTokenExchange(address buyer);
 
@@ -44,7 +37,7 @@ contract FiDisputeManager is Context {
             address(dispute),
             dispute.participationStakeValue()
         );
-        emit NewOpenDispute(address(dispute));
+        emit NewOpenDispute(address(dispute), disputeHash, _msgSender());
         return address(dispute);
     }
 

@@ -13,6 +13,10 @@ class WinnerComponent extends Component {
         this.web3 = this.props.web3
     }
 
+    onDisputeAddressChange = async (event) => {
+        this.setState({ disputeAddress: event.target.value })
+    }
+
     onJudgeAddressChange = async (event) => {
         this.setState({ judgeAddress: event.target.value })
     }
@@ -28,7 +32,7 @@ class WinnerComponent extends Component {
             { from: this.state.judgeAddress }
         )
         await dispute.methods
-            .chooseWinner(this.state.winner)
+            .chooseWinner(this.state.winnerAddress)
             .send({ from: this.state.judgeAddress })
     }
 
@@ -44,14 +48,18 @@ class WinnerComponent extends Component {
                             </Container>
                             <Form>
                                 <Form.Group className="mb-3">
+                                    <Form.Label>Dispute address</Form.Label>
+                                    <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onDisputeAddressChange} />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
                                     <Form.Label>Judge address</Form.Label>
                                     <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onJudgeAddressChange} />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Winner address</Form.Label>
-                                    <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onWinnerAddressChange }/>
+                                    <Form.Control type="text" placeholder="Valid Ethereum address" onChange={this.onWinnerAddressChange} />
                                 </Form.Group>
-                                <Button variant="primary" type="submit" onClick={this.chooseWinner}>Choose</Button>
+                                <Button variant="primary" onClick={this.chooseWinner}>Choose</Button>
                             </Form>
                         </Card.Body>
                     </Card>
